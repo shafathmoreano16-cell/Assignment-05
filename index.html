@@ -4,9 +4,223 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Assignment 5 - GitHub Gallery</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #222;
+    }
+
+    header {
+      background-color: #24292f;
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+
+    header p {
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .search-area {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    #usernameInput {
+      width: 280px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 16px;
+      border: none;
+      background-color: #2da44e;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background-color: #218739;
+    }
+
+    #message {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .repo-card {
+      width: 260px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .repo-card h2 {
+      font-size: 18px;
+      margin-top: 0;
+      margin-bottom: 10px;
+      word-wrap: break-word;
+    }
+
+    .repo-card p {
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .repo-link {
+      display: inline-block;
+      margin-top: 10px;
+      text-decoration: none;
+      color: #0969da;
+      font-weight: bold;
+    }
+
+    .repo-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <h1>GitHub Repository Gallery</h1>
-  <p>This is my Assignment 5 page.</p>
+  <header>
+    <h1>GitHub Repository Gallery</h1>
+    <p>Search for a GitHub user and view their latest repositories</p>
+  </header>
+
+  <main>
+    <div class="search-area">
+      <input type="text" id="usernameInput" placeholder="Enter GitHub username">
+      <button id="searchButton">Search</button>
+    </div>
+
+    <div id="message"></div>
+    <div id="gallery" class="gallery"></div>
+  </main>
+
+  <script>
+    const usernameInput = document.getElementById("usernameInput");
+    const searchButton = document.getElementById("searchButton");
+    const message = document.getElementById("message");
+    const gallery = document.getElementById("gallery");
+
+    const defaultUsername = "shafathmoreano16-cell";
+
+    function formatDate(dateString) {
+      const dateObject = new Date(dateString);
+      return dateObject.toLocaleDateString();
+    }
+
+    async function getLanguages(languagesUrl) {
+      try {
+        const response = await fetch(languagesUrl);
+        const languageData = await response.json();
+        const languageNames = Object.keys(languageData);
+
+        if (languageNames.length === 0) {
+          return "None listed";
+        }
+
+        return languageNames.join(", ");
+      } catch (error) {
+        return "Unable to load languages";
+      }
+    }
+
+    async function displayRepositories(username) {
+      gallery.innerHTML = "";
+      message.textContent = "Loading repositories...";
+
+      const url = `https://api.github.com/users/${username}/repos?sort=updated&per_page=10`;
+
+      try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error("Request failed");
+        }
+
+        const repos = await response.json();
+
+        if (repos.length === 0) {
+          message.textContent = "No repositories were returned for this user.";
+          return;
+        }
+
+        message.textContent = `Showing latest ${repos.length} repositories for ${username}`;
+
+        for (let i = 0; i < repos.length; i++) {
+          const repo = repos[i];
+          const languages = await getLanguages(repo.languages_url);
+
+          const card = document.createElement("div");
+          card.className = "repo-card";
+
+          card.innerHTML = `
+            <h2>${repo.name}</h2>
+            <p><strong>Description:</strong> ${repo.description ? repo.description : "No description"}</p>
+            <p><strong>Created:</strong> ${formatDate(repo.created_at)}</p>
+            <p><strong>Updated:</strong> ${formatDate(repo.updated_at)}</p>
+            <p><strong>Languages:</strong> ${languages}</p>
+            <p><strong>Watchers:</strong> ${repo.watchers_count}</p>
+            <a class="repo-link" href="${repo.html_url}" target="_blank">View Repository</a>
+          `;
+
+          gallery.appendChild(card);
+        }
+      } catch (error) {
+        message.textContent = "Could not load repositories. Please check the username and try again.";
+      }
+    }
+
+    searchButton.addEventListener("click", function () {
+      const username = usernameInput.value.trim();
+
+      if (username === "") {
+        message.textContent = "Please enter a GitHub username.";
+        gallery.innerHTML = "";
+        return;
+      }
+
+      displayRepositories(username);
+    });
+
+    usernameInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        searchButton.click();
+      }
+    });
+
+    displayRepositories(defaultUsername);
+  </script>
 </body>
 </html>
