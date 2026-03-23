@@ -30,7 +30,7 @@ async function displayRepositories(username) {
   gallery.innerHTML = "";
   message.textContent = "Loading repositories...";
 
-  const url = `https://api.github.com/users/${username}/repos?sort=updated&per_page=10`;
+  const url = "https://api.github.com/users/" + username + "/repos?sort=updated&per_page=10";
 
   try {
     const response = await fetch(url);
@@ -46,7 +46,7 @@ async function displayRepositories(username) {
       return;
     }
 
-    message.textContent = `Showing latest ${repos.length} repositories for ${username}`;
+    message.textContent = "Showing latest " + repos.length + " repositories for " + username;
 
     for (let i = 0; i < repos.length; i++) {
       const repo = repos[i];
@@ -55,15 +55,14 @@ async function displayRepositories(username) {
       const card = document.createElement("div");
       card.className = "repo-card";
 
-      card.innerHTML = `
-        <h2>${repo.name}</h2>
-        <p><strong>Description:</strong> ${repo.description ? repo.description : "No description"}</p>
-        <p><strong>Created:</strong> ${formatDate(repo.created_at)}</p>
-        <p><strong>Updated:</strong> ${formatDate(repo.updated_at)}</p>
-        <p><strong>Languages:</strong> ${languages}</p>
-        <p><strong>Watchers:</strong> ${repo.watchers_count}</p>
-        <a class="repo-link" href="${repo.html_url}" target="_blank">View Repository</a>
-      `;
+      card.innerHTML =
+        "<h2>" + repo.name + "</h2>" +
+        "<p><strong>Description:</strong> " + (repo.description ? repo.description : "No description") + "</p>" +
+        "<p><strong>Created:</strong> " + formatDate(repo.created_at) + "</p>" +
+        "<p><strong>Updated:</strong> " + formatDate(repo.updated_at) + "</p>" +
+        "<p><strong>Languages:</strong> " + languages + "</p>" +
+        "<p><strong>Watchers:</strong> " + repo.watchers_count + "</p>" +
+        "<a class='repo-link' href='" + repo.html_url + "' target='_blank'>View Repository</a>";
 
       gallery.appendChild(card);
     }
